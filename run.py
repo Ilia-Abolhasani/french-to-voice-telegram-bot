@@ -3,12 +3,24 @@ import sys
 import telebot
 from gtts import gTTS
 from dotenv import load_dotenv
+from googletrans import Translator
+
+translator = Translator()
 
 load_dotenv()
 
 # Replace with your actual Telegram bot token
 BOT_TOKEN = os.getenv("bot_api_key")
 bot = telebot.TeleBot(BOT_TOKEN)
+
+
+def translate_to_english(text):
+    try:
+        translated = translator.translate(text, src="fr", dest="en")
+        return translated.text
+    except Exception as e:
+        print(f"Translation error: {e}")
+        return ""
 
 
 def text_to_speech_french(text, filename="output.mp3"):
@@ -32,11 +44,14 @@ def send_welcome(message):
 @bot.message_handler(func=lambda message: True)
 def handle_message(message):
     french_text = message.text
+    english_text = translate_to_english(french_text)
     audio_file = text_to_speech_french(french_text)
+    caption = f"{french_text}\n\nTraduction:\n||{english_text}||"
     if audio_file:
         with open(audio_file, "rb") as audio:
-            bot.send_voice(message.chat.id, audio)
-    bot.send_message(message.chat.id, f"{french_text}")
+            bot.send_voice(
+                message.chat.id, audio, caption=caption, parse_mode="MarkdownV2"
+            )
 
 
 if __name__ == "__main__":
