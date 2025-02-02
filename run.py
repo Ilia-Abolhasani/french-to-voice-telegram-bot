@@ -1,9 +1,11 @@
+import re
 import os
 import sys
 import telebot
 from gtts import gTTS
 from dotenv import load_dotenv
 from googletrans import Translator
+
 
 translator = Translator()
 
@@ -21,6 +23,11 @@ def translate_to_english(text):
     except Exception as e:
         print(f"Translation error: {e}")
         return ""
+
+
+def escape_markdown_v2(text):
+    special_chars = r"\_*[]()~`>#+-=|{}.!"
+    return re.sub(f"([{re.escape(special_chars)}])", r"\\\1", text)
 
 
 def text_to_speech_french(text, filename="output.mp3"):
@@ -46,7 +53,7 @@ def handle_message(message):
     french_text = message.text
     english_text = translate_to_english(french_text)
     audio_file = text_to_speech_french(french_text)
-    caption = f"{french_text}\n\nTraduction:\n||{english_text}||"
+    caption = f"{escape_markdown_v2(french_text)}\n\nTraduction:\n||{escape_markdown_v2(english_text)}||"
     if audio_file:
         with open(audio_file, "rb") as audio:
             bot.send_voice(
