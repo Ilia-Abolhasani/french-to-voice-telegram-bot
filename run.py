@@ -25,6 +25,15 @@ def translate_to_english(text):
         return ""
 
 
+def translate_to_farsi(text):
+    try:
+        translated = translator.translate(text, src="fr", dest="fa")
+        return translated.text
+    except Exception as e:
+        print(f"Translation error: {e}")
+        return ""
+
+
 def escape_markdown_v2(text):
     special_chars = r"\_*[]()~`>#+-=|{}.!"
     return re.sub(f"([{re.escape(special_chars)}])", r"\\\1", text)
@@ -52,8 +61,9 @@ def send_welcome(message):
 def handle_message(message):
     french_text = message.text
     english_text = translate_to_english(french_text)
+    farsi_text = translate_to_farsi(french_text)
     audio_file = text_to_speech_french(french_text)
-    caption = f"{escape_markdown_v2(french_text)}\n\nTraduction:\n||{escape_markdown_v2(english_text)}||"
+    caption = f"{escape_markdown_v2(french_text)}\n\nTraduction:\n||{escape_markdown_v2(english_text)}\n{escape_markdown_v2(farsi_text)}||"
     if audio_file:
         with open(audio_file, "rb") as audio:
             bot.send_voice(
